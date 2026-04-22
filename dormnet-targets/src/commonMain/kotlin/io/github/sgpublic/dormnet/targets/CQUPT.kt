@@ -1,6 +1,7 @@
 package io.github.sgpublic.dormnet.targets
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,12 +11,12 @@ import io.github.sgpublic.dormnet.targets.template.DormnetDevice
 import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceTarget
 import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceModel
 import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceTargetParamsData
-import io.ktor.client.plugins.resources.get
 import io.ktor.client.request.cookie
+import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
-import io.ktor.resources.Resource
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -25,28 +26,7 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 
 private const val PortalReferer = "http://192.168.200.2/"
-
-@Resource(PortalReferer)
-private class CquptPageTypeDataResource(
-    val c: String = "Portal",
-    val a: String = "page_type_data",
-)
-
-@Resource("http://192.168.200.2:801/eportal/")
-private class CquptLoginResource(
-    val callback: String,
-    val user_account: String,
-    val user_password: String,
-    val wlan_user_ip: String,
-    val wlan_user_mac: String,
-    val c: String = "Portal",
-    val a: String = "login",
-    val login_method: String = "1",
-    val wlan_user_ipv6: String = "",
-    val wlan_ac_ip: String = "",
-    val wlan_ac_name: String = "",
-    val jsVersion: String = "3.3.3",
-)
+private const val EportalUrl = "http://192.168.200.2:801/eportal/"
 
 enum class CquptOperator(
     val value: String,
@@ -136,7 +116,9 @@ object CQUPT : UserPwdDeviceTarget() {
     }
 
     private suspend fun requestSession(device: DormnetDevice): String {
-        val response = HttpClient.get(CquptPageTypeDataResource()) {
+        val response = HttpClient.get(EportalUrl) {
+            parameter("c", "Portal")
+            parameter("a", "page_type_data")
             header(HttpHeaders.UserAgent, device.userAgent)
             header(HttpHeaders.Referrer, PortalReferer)
             header("DNT", "1")
@@ -156,15 +138,22 @@ object CQUPT : UserPwdDeviceTarget() {
         mac: String,
         phpSessionId: String,
     ): CquptEportalResponse {
-        val response = HttpClient.get(
-            CquptLoginResource(
-                callback = params.device.callback,
-                user_account = ",${params.device.accountPrefix},${params.username}@${params.operator.value}",
-                user_password = params.password,
-                wlan_user_ip = ip,
-                wlan_user_mac = mac,
+        val response = HttpClient.get(EportalUrl) {
+            parameter("c", "Portal")
+            parameter("a", "login")
+            parameter("callback", params.device.callback)
+            parameter("login_method", "1")
+            parameter(
+                "user_account",
+                ",${params.device.accountPrefix},${params.username}@${params.operator.value}",
             )
-        ) {
+            parameter("user_password", params.password)
+            parameter("wlan_user_ip", ip)
+            parameter("wlan_user_ipv6", "")
+            parameter("wlan_user_mac", mac)
+            parameter("wlan_ac_ip", "")
+            parameter("wlan_ac_name", "")
+            parameter("jsVersion", "3.3.3")
             cookie("PHPSESSID", phpSessionId)
             header(HttpHeaders.UserAgent, params.device.userAgent)
             header(HttpHeaders.Referrer, PortalReferer)

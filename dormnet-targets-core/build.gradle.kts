@@ -22,6 +22,7 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.components.resources)
             implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.bundles.ktor.client)
             implementation(projects.dormnetCore)
         }
         commonTest.dependencies {

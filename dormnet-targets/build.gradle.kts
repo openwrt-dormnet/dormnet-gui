@@ -33,8 +33,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.bundles.miuix)
             implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.resources)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.bundles.androidx.datastore)
+            implementation(libs.bundles.ktor.client)
             implementation(projects.dormnetCore)
             implementation(projects.dormnetTargetsCore)
         }

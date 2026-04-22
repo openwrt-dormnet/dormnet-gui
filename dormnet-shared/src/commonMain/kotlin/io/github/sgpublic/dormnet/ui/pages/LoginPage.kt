@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowSizeClass
 import io.github.sgpublic.dormnet.core.Config
+import io.github.sgpublic.dormnet.core.getSchool
+import io.github.sgpublic.dormnet.core.setSchool
 import io.github.sgpublic.dormnet.generated.resources.Res
 import io.github.sgpublic.dormnet.generated.resources.app_name
 import io.github.sgpublic.dormnet.generated.resources.login_action
@@ -41,6 +43,8 @@ import org.jetbrains.compose.resources.stringResource
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -56,8 +60,14 @@ fun LoginPage() {
     }
 
     val scope = rememberCoroutineScope()
-
-    Scaffold { innerPadding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                state = snackbarHostState
+            )
+        }
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -126,7 +136,12 @@ fun LoginPage() {
                                 viewModel.loading = true
                                 val params = viewModel.createLoginParams()
                                 scope.launch(Dispatchers.IO) {
-                                    val result = target.login(params)
+                                    target.login(params).onFailure {
+                                        snackbarHostState.showSnackbar(it.message!!)
+                                        it.printStackTrace()
+                                    }.onSuccess {
+                                        snackbarHostState.showSnackbar(it)
+                                    }
                                     Config.setSchool(school)
                                     viewModel.loading = false
                                 }

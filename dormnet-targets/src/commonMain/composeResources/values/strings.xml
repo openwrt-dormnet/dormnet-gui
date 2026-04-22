@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="school_cqupt">重庆人工智能学院</string>
+
+
     <string name="school_cqcai">重庆邮电大学</string>
+    <string name="school_cqcai_failed_redirect_info">未能获取认证跳转信息：%1$s</string>
+
+
+
     <string name="login_failed">登录失败</string>
 
     <string name="login_username">用户名</string>

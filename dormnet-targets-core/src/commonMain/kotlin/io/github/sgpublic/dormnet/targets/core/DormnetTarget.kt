@@ -23,6 +23,8 @@ abstract class DormnetViewModel<T: LoginParams>: ViewModel() {
 abstract class DormnetTarget<T: LoginParams> {
     abstract val title: StringResource
 
+    open val HttpClient = io.github.sgpublic.dormnet.core.HttpClient
+
     @Composable
     abstract operator fun invoke()
 
