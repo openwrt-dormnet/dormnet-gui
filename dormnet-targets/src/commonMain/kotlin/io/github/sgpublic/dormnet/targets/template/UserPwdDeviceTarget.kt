@@ -4,12 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import io.github.sgpublic.dormnet.targets.Res
 import io.github.sgpublic.dormnet.targets.core.DormnetTarget
 import io.github.sgpublic.dormnet.targets.core.DormnetViewModel
 import io.github.sgpublic.dormnet.targets.core.LoginParams
+import io.github.sgpublic.dormnet.targets.login_device
+import io.github.sgpublic.dormnet.targets.login_device_mobile
+import io.github.sgpublic.dormnet.targets.login_device_pc
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 
 enum class DormnetDevice {
-    PC, Mobile
+    PC,
+    Mobile,
 }
 
 expect val DefaultDormnetDevice: DormnetDevice
@@ -58,6 +67,23 @@ abstract class UserPwdDeviceTarget: DormnetTarget<UserPwdDeviceTargetParamsData>
             },
         )
 
+        Card {
+            OverlayDropdownPreference(
+                title = stringResource(Res.string.login_device),
+                items = DormnetDevice.entries.map {
+                    stringResource(it.label)
+                },
+                selectedIndex = viewModel.device.ordinal,
+                onSelectedIndexChange = {
+                    viewModel.device = DormnetDevice.entries[it]
+                },
+            )
+        }
+    }
+
+    protected val DormnetDevice.label: StringResource get() = when (this) {
+        DormnetDevice.PC -> Res.string.login_device_pc
+        DormnetDevice.Mobile -> Res.string.login_device_mobile
     }
 
     override fun createViewModel(): UserPwdDeviceModel {

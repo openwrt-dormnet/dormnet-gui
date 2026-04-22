@@ -35,5 +35,6 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.compose.components.resources)
+    implementation(projects.dormnetCore)
     implementation(projects.dormnetShared)
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,9 +25,7 @@ import io.github.sgpublic.dormnet.generated.resources.Res
 import io.github.sgpublic.dormnet.generated.resources.school_empty
 import io.github.sgpublic.dormnet.generated.resources.school_label
 import io.github.sgpublic.dormnet.generated.resources.school_placeholder
-import io.github.sgpublic.dormnet.targets.core.DormnetTarget
 import io.github.sgpublic.dormnet.targets.core.DormnetTargetRegistry
-import io.github.sgpublic.dormnet.targets.core.LoginParams
 import org.jetbrains.compose.resources.stringResource
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -41,15 +40,19 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 fun SchoolSelector(
     modifier: Modifier = Modifier,
-    targets: List<DormnetTarget<out LoginParams>> = DormnetTargetRegistry.all,
-    onSelected: (DormnetTarget<out LoginParams>?) -> Unit = {},
+    targets: List<DormnetTargetRegistry> = DormnetTargetRegistry.entries,
+    selected: DormnetTargetRegistry? = null,
+    onSelected: (DormnetTargetRegistry?) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     val schoolLabel = stringResource(Res.string.school_label)
     val schoolPlaceholder = stringResource(Res.string.school_placeholder)
     val schools = targets.associateWith { target ->
-        stringResource(target.title)
+        stringResource(target.impl.title)
+    }
+    LaunchedEffect(selected, schools) {
+        query = selected?.let { schools[it] }.orEmpty()
     }
     val filteredSchools = remember(query, schools) {
         schools.filter { (_, title) ->
@@ -81,10 +84,8 @@ fun SchoolSelector(
                     IconButton(
                         onClick = {
                             query = ""
+                            expanded = true
                             onSelected(null)
-                        },
-                        modifier = Modifier.focusProperties {
-                            canFocus = false
                         },
                     ) {
                         Icon(

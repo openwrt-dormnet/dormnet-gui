@@ -7,7 +7,7 @@ import org.jetbrains.compose.resources.StringResource
 
 @DormnetTargetEntry
 object CQCAI : UserPwdDeviceTarget() {
-    override val title: StringResource = Res.string.school_chongqing_college_of_artificial_intelligence
+    override val title: StringResource = Res.string.school_cqupt
 
     override suspend fun doLogin(params: UserPwdDeviceTargetParamsData): Result<String> {
         return Result.success("")

@@ -11,6 +11,9 @@ kotlin {
         namespace = "${libs.versions.app.packageName.get()}.targets"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+        androidResources {
+            enable = true
+        }
     }
 
     iosArm64()
@@ -29,6 +32,10 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.bundles.miuix)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.resources)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(projects.dormnetCore)
             implementation(projects.dormnetTargetsCore)
         }
         commonTest.dependencies {

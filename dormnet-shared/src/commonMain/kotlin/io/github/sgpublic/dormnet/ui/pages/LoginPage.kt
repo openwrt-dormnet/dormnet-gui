@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,12 +25,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowSizeClass
+import io.github.sgpublic.dormnet.core.Config
 import io.github.sgpublic.dormnet.generated.resources.Res
 import io.github.sgpublic.dormnet.generated.resources.app_name
 import io.github.sgpublic.dormnet.generated.resources.login_action
 import io.github.sgpublic.dormnet.generated.resources.login_subtitle
 import io.github.sgpublic.dormnet.generated.resources.login_title
-import io.github.sgpublic.dormnet.targets.core.DormnetTarget
+import io.github.sgpublic.dormnet.targets.core.DormnetTargetRegistry
 import io.github.sgpublic.dormnet.targets.core.LocalDormnetViewModel
 import io.github.sgpublic.dormnet.ui.component.SchoolSelector
 import kotlinx.coroutines.Dispatchers
@@ -76,7 +78,12 @@ fun LoginPage() {
                     .padding(top = 24.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                var school: DormnetTarget<*>? by remember { mutableStateOf(null) }
+                var school: DormnetTargetRegistry? by remember {
+                    mutableStateOf(null)
+                }
+                LaunchedEffect(Unit) {
+                    school = Config.getSchool()
+                }
 
                 Text(
                     text = stringResource(Res.string.app_name),
@@ -84,8 +91,12 @@ fun LoginPage() {
                 )
                 SchoolSelector(
                     modifier = Modifier.fillMaxWidth(),
+                    selected = school,
                 ) {
                     school = it
+                    if (it == null) {
+                        scope.launch { Config.setSchool(null) }
+                    }
                 }
                 if (school == null) {
                     Card(
@@ -103,19 +114,20 @@ fun LoginPage() {
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         )
                     }
-                } else school?.let { school ->
-                    val viewModel = viewModel { school.createViewModel() }
+                } else school?.impl?.let { target ->
+                    val viewModel = viewModel { target.createViewModel() }
                     CompositionLocalProvider(
                         LocalDormnetViewModel provides viewModel
                     ) {
-                        school()
+                        target()
 
                         Button(
                             onClick = {
                                 viewModel.loading = true
                                 val params = viewModel.createLoginParams()
                                 scope.launch(Dispatchers.IO) {
-                                    val result = school.login(params)
+                                    val result = target.login(params)
+                                    Config.setSchool(school)
                                     viewModel.loading = false
                                 }
                             },

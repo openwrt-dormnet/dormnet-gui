@@ -41,6 +41,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.bundles.miuix)
+            implementation(libs.bundles.androidx.datastore)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

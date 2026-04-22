@@ -18,6 +18,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.bundles.androidx.datastore)
             implementation(libs.bundles.ktor.client)
             implementation(libs.bundles.kotlinx.serialization)
         }

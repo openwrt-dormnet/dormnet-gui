@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="school_chongqing_college_of_artificial_intelligence">重庆人工智能学院</string>
-    <string name="school_chongqing_university_of_posts_and_telecommunications">重庆邮电大学</string>
+    <string name="school_cqupt">重庆人工智能学院</string>
+    <string name="school_cqcai">重庆邮电大学</string>
+    <string name="login_failed">登录失败</string>
 
     <string name="login_username">用户名</string>
     <string name="login_password">密码</string>

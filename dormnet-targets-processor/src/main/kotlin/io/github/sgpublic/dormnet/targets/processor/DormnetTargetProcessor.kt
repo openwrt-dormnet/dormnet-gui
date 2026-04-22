@@ -69,6 +69,7 @@ class DormnetTargetProcessor(
                     null
                 }
                 else -> TargetEntry(
+                    name = declaration.simpleName.asString().toEnumEntryName(),
                     qualifiedName = qualifiedName,
                     expression = if (declaration.classKind == ClassKind.OBJECT) {
                         qualifiedName
@@ -105,23 +106,45 @@ class DormnetTargetProcessor(
             ""
         } else {
             targets.joinToString(separator = ",\n") { target ->
-                "        ${target.expression}"
-            } + ",\n"
+                "    ${target.name}(${target.expression})"
+            } + ";\n"
         }
 
         return """
             |package $REGISTRY_PACKAGE
             |
-            |public object $REGISTRY_NAME {
-            |    public val all: List<DormnetTarget<out LoginParams>> = listOf(
+            |public enum class $REGISTRY_NAME(
+            |    public val impl: DormnetTarget<out LoginParams>,
+            |) {
             |$entries
-            |    )
+            |    public companion object {
+            |        public val all: List<DormnetTarget<out LoginParams>> = entries.map { it.impl }
+            |    }
             |}
             |
         """.trimMargin()
     }
 
+    private fun String.toEnumEntryName(): String {
+        return fold(StringBuilder()) { result, char ->
+            when {
+                char.isLetterOrDigit() -> result.append(char.uppercaseChar())
+                result.lastOrNull() != '_' -> result.append('_')
+                else -> result
+            }
+        }.toString()
+            .trim('_')
+            .let { name ->
+                when {
+                    name.isEmpty() -> "TARGET"
+                    name.first().isDigit() -> "_$name"
+                    else -> name
+                }
+            }
+    }
+
     private data class TargetEntry(
+        val name: String,
         val qualifiedName: String,
         val expression: String,
     )
