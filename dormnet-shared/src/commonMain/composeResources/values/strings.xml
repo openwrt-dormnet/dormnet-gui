@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">校园网登陆工具</string>
+    <string name="school_label">学校</string>
+    <string name="school_placeholder">搜索或选择学校</string>
+    <string name="school_empty">没有匹配的学校</string>
+    <string name="login_title">校园网登录</string>
+    <string name="login_subtitle">选择学校后继续配置登录信息</string>
+    <string name="login_action">登陆</string>
+</resources>
