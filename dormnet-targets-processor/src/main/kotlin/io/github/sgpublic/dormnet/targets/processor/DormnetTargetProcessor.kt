@@ -10,15 +10,24 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Modifier
+import com.google.devtools.ksp.symbol.FileLocation
 import com.google.devtools.ksp.validate
 import io.github.sgpublic.dormnet.targets.core.DormnetTarget
 import io.github.sgpublic.dormnet.targets.core.DormnetTargetEntry
+import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 
 class DormnetTargetProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
+    private val maintainersOutput: String?,
+    targetStrings: String?,
 ) : SymbolProcessor {
     private var generated = false
+    private val stringResources = targetStrings
+        ?.takeIf { it.isNotBlank() }
+        ?.let { loadStringResources(File(it)) }
+        .orEmpty()
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         if (generated) {
@@ -70,12 +79,14 @@ class DormnetTargetProcessor(
                 }
                 else -> TargetEntry(
                     name = declaration.simpleName.asString().toEnumEntryName(),
+                    displayName = declaration.displayName(),
                     qualifiedName = qualifiedName,
                     expression = if (declaration.classKind == ClassKind.OBJECT) {
                         qualifiedName
                     } else {
                         "$qualifiedName()"
                     },
+                    maintainers = declaration.maintainers(),
                 )
             }
         }.sortedBy { it.qualifiedName }
@@ -91,6 +102,7 @@ class DormnetTargetProcessor(
         ).bufferedWriter().use { writer ->
             writer.write(buildRegistryFile(targets))
         }
+        generateMaintainersFile(targets)
 
         generated = true
         return emptyList()
@@ -99,6 +111,65 @@ class DormnetTargetProcessor(
     private fun KSClassDeclaration.isDormnetTarget(dormnetTargetType: KSType): Boolean {
         val targetType = asStarProjectedType()
         return dormnetTargetType.isAssignableFrom(targetType)
+    }
+
+    private fun KSClassDeclaration.displayName(): String {
+        val resourceName = titleResourceName()
+        return resourceName?.let { stringResources[it] } ?: simpleName.asString()
+    }
+
+    private fun KSClassDeclaration.titleResourceName(): String? {
+        val location = location as? FileLocation ?: return null
+        return runCatching {
+            File(location.filePath)
+                .readLines()
+                .drop(location.lineNumber - 1)
+                .firstNotNullOfOrNull { line ->
+                    TITLE_RESOURCE_REGEX.find(line)?.groupValues?.get(1)
+                }
+        }.getOrNull()
+    }
+
+    private fun KSClassDeclaration.maintainers(): List<String> {
+        return annotations
+            .firstOrNull {
+                it.annotationType.resolve().declaration.qualifiedName?.asString() == DORMNET_TARGET_ENTRY
+            }
+            ?.arguments
+            ?.firstOrNull { it.name?.asString() == "maintainer" }
+            ?.value
+            .let { value ->
+                when (value) {
+                    is List<*> -> value.filterIsInstance<String>()
+                    is Array<*> -> value.filterIsInstance<String>()
+                    is String -> listOf(value)
+                    else -> emptyList()
+                }
+            }
+    }
+
+    private fun loadStringResources(file: File): Map<String, String> {
+        if (!file.isFile) {
+            logger.warn("Dormnet target strings file does not exist: ${file.absolutePath}")
+            return emptyMap()
+        }
+
+        return runCatching {
+            val document = DocumentBuilderFactory.newInstance()
+                .newDocumentBuilder()
+                .parse(file)
+            val strings = document.getElementsByTagName("string")
+            buildMap {
+                for (index in 0 until strings.length) {
+                    val node = strings.item(index)
+                    val name = node.attributes?.getNamedItem("name")?.nodeValue ?: continue
+                    put(name, node.textContent)
+                }
+            }
+        }.getOrElse { error ->
+            logger.warn("Unable to parse Dormnet target strings file: ${error.message}")
+            emptyMap()
+        }
     }
 
     private fun buildRegistryFile(targets: List<TargetEntry>): String {
@@ -125,6 +196,30 @@ class DormnetTargetProcessor(
         """.trimMargin()
     }
 
+    private fun generateMaintainersFile(targets: List<TargetEntry>) {
+        val output = maintainersOutput?.takeIf { it.isNotBlank() } ?: return
+        val outputFile = File(output)
+        outputFile.parentFile?.mkdirs()
+        outputFile.writeText(buildMaintainersFile(targets))
+    }
+
+    private fun buildMaintainersFile(targets: List<TargetEntry>): String {
+        val rows = targets.map { target ->
+            val maintainers = target.maintainers.joinToString(separator = ", ") { "@$it" }
+            "| ${target.displayName} | $maintainers |"
+        }
+
+        return listOf(
+            "# 学校维护者",
+            "",
+            "> 此文件由 KSP 自动生成，请修改 `@DormnetTargetEntry` 中的 `maintainer` 字段。",
+            "",
+            "| 学校 | 维护者 |",
+            "| --- | --- |",
+        ).plus(rows)
+            .joinToString(separator = "\n", postfix = "\n")
+    }
+
     private fun String.toEnumEntryName(): String {
         return fold(StringBuilder()) { result, char ->
             when {
@@ -145,8 +240,10 @@ class DormnetTargetProcessor(
 
     private data class TargetEntry(
         val name: String,
+        val displayName: String,
         val qualifiedName: String,
         val expression: String,
+        val maintainers: List<String>,
     )
 
     private companion object {
@@ -154,5 +251,6 @@ class DormnetTargetProcessor(
         val DORMNET_TARGET = DormnetTarget::class.java.name
         val REGISTRY_PACKAGE = DormnetTarget::class.java.packageName
         val REGISTRY_NAME = "DormnetTargetRegistry"
+        val TITLE_RESOURCE_REGEX = Regex("""\btitle\s*:[^=]*=\s*Res\.string\.([A-Za-z_][A-Za-z0-9_]*)""")
     }
 }

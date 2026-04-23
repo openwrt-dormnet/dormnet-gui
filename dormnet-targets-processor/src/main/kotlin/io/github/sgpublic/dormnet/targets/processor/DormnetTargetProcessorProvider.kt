@@ -9,6 +9,8 @@ class DormnetTargetProcessorProvider : SymbolProcessorProvider {
         return DormnetTargetProcessor(
             codeGenerator = environment.codeGenerator,
             logger = environment.logger,
+            maintainersOutput = environment.options["dormnet.maintainersOutput"],
+            targetStrings = environment.options["dormnet.targetStrings"],
         )
     }
 }

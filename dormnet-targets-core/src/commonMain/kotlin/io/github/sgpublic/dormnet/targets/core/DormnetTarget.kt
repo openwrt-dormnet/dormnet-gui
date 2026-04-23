@@ -1,9 +1,6 @@
 package io.github.sgpublic.dormnet.targets.core
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.ViewModel
 import org.jetbrains.compose.resources.StringResource
@@ -15,8 +12,6 @@ val LocalDormnetViewModel = staticCompositionLocalOf<DormnetViewModel<out LoginP
 }
 
 abstract class DormnetViewModel<T: LoginParams>: ViewModel() {
-    var loading: Boolean by mutableStateOf(true)
-
     abstract fun createLoginParams(): T
 }
 
@@ -26,7 +21,7 @@ abstract class DormnetTarget<T: LoginParams> {
     open val HttpClient = io.github.sgpublic.dormnet.core.HttpClient
 
     @Composable
-    abstract operator fun invoke()
+    abstract operator fun invoke(loading: Boolean, onLoadingChanged: (Boolean) -> Unit)
 
     @Composable
     protected fun <VM: DormnetViewModel<T>> viewModel(): VM {

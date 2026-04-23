@@ -52,7 +52,7 @@ open class UserPwdDeviceModel: DormnetViewModel<UserPwdDeviceTargetParamsData>()
 
 abstract class UserPwdDeviceTarget: DormnetTarget<UserPwdDeviceTargetParamsData>() {
     @Composable
-    override fun invoke() {
+    override fun invoke(loading: Boolean, onLoadingChanged: (Boolean) -> Unit) {
         val viewModel = viewModel<UserPwdDeviceModel>()
         UserPwdTarget.Ui(
             username = viewModel.username,
@@ -65,6 +65,7 @@ abstract class UserPwdDeviceTarget: DormnetTarget<UserPwdDeviceTargetParamsData>
             onPasswordChanged = {
                 viewModel.password = it
             },
+            enabled = !loading,
         )
 
         Card {
@@ -77,6 +78,7 @@ abstract class UserPwdDeviceTarget: DormnetTarget<UserPwdDeviceTargetParamsData>
                 onSelectedIndexChange = {
                     viewModel.device = DormnetDevice.entries[it]
                 },
+                enabled = !loading,
             )
         }
     }

@@ -48,13 +48,15 @@ class CquptViewModel : UserPwdDeviceModel() {
     }
 }
 
-@DormnetTargetEntry
+@DormnetTargetEntry(
+    maintainer = ["sgpublic"]
+)
 object CQUPT : UserPwdDeviceTarget() {
     override val title: StringResource = Res.string.school_cqupt
 
     @Composable
-    override fun invoke() {
-        super.invoke()
+    override fun invoke(loading: Boolean, onLoadingChanged: (Boolean) -> Unit) {
+        super.invoke(loading, onLoadingChanged)
 
         val viewModel = viewModel<CquptViewModel>()
         Card {
@@ -65,6 +67,7 @@ object CQUPT : UserPwdDeviceTarget() {
                 onSelectedIndexChange = {
                     viewModel.operator = CquptOperator.entries[it]
                 },
+                enabled = !loading
             )
         }
         

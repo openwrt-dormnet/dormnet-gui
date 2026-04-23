@@ -49,6 +49,27 @@ dependencies {
     add("kspCommonMainMetadata", projects.dormnetTargetsProcessor)
 }
 
+val dormnetTargetStrings = layout.projectDirectory.file(
+    "src/commonMain/composeResources/values/strings.xml",
+)
+
+ksp {
+    arg(
+        "dormnet.maintainersOutput",
+        rootProject.layout.projectDirectory.file("MAINTAINERS.md").asFile.absolutePath,
+    )
+    arg(
+        "dormnet.targetStrings",
+        dormnetTargetStrings.asFile.absolutePath,
+    )
+}
+
+tasks.matching {
+    it.name == "kspCommonMainKotlinMetadata"
+}.configureEach {
+    inputs.file(dormnetTargetStrings)
+}
+
 tasks.matching {
     (it.name.startsWith("compile") && it.name.contains("Kotlin")) ||
         it.name == "compileAndroidMain"

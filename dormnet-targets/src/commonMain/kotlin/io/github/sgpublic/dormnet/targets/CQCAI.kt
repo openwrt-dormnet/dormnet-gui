@@ -24,7 +24,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 
-@DormnetTargetEntry
+@DormnetTargetEntry(
+    maintainer = ["sgpublic"]
+)
 object CQCAI : UserPwdDeviceTarget() {
     override val title: StringResource = Res.string.school_cqcai
     override val HttpClient: HttpClient = super.HttpClient.config {
@@ -32,8 +34,8 @@ object CQCAI : UserPwdDeviceTarget() {
     }
 
     @Composable
-    override fun invoke() {
-        super.invoke()
+    override fun invoke(loading: Boolean, onLoadingChanged: (Boolean) -> Unit) {
+        super.invoke(loading, onLoadingChanged)
         val viewModel = viewModel<UserPwdDeviceModel>()
         LaunchedEffect(Unit) {
             viewModel.username = Config[CqcaiUsernameKey] ?: ""

@@ -42,6 +42,7 @@ fun SchoolSelector(
     modifier: Modifier = Modifier,
     targets: List<DormnetTargetRegistry> = DormnetTargetRegistry.entries,
     selected: DormnetTargetRegistry? = null,
+    enabled: Boolean = true,
     onSelected: (DormnetTargetRegistry?) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -87,6 +88,7 @@ fun SchoolSelector(
                             expanded = true
                             onSelected(null)
                         },
+                        enabled = enabled,
                     ) {
                         Icon(
                             imageVector = MiuixIcons.Close,
@@ -96,9 +98,10 @@ fun SchoolSelector(
                     }
                 }
             },
+            enabled = enabled,
         )
 
-        if (expanded) {
+        if (expanded && enabled) {
             Card(
                 modifier = Modifier
                     .align(Alignment.TopStart)

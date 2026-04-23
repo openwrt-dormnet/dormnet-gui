@@ -1,45 +1,17 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM).
+# DormNet-GUI
 
-* [/dormnet-shared](./dormnet-shared/src) is for shared Compose Multiplatform UI and common Kotlin code.
-  It contains platform source sets such as `commonMain`, `androidMain`, `iosMain`, and `jvmMain`.
-* [/dormnet-android](./dormnet-android/src) is the Android application module.
-* [/dormnet-desktop](./dormnet-desktop/src) is the Desktop application module.
-* [/iosApp](./iosApp) is the iOS application shell that embeds the `DormNetShared` Kotlin framework.
+DormNet-GUI 是一个开源的校园网登录工具，基于 Kotlin Multiplatform 和 Compose Multiplatform 构建，目标是把不同学校的校园网认证流程整理成可复用、可维护的客户端适配。
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+项目当前仍处于早期阶段，学校适配和平台体验会持续完善。
 
-### Build and Run Android Application
+## 已支持学校
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :dormnet-android:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :dormnet-android:assembleDebug
-  ```
+详情见 [MAINTAINERS.md](MAINTAINERS.md)。
 
-### Build and Run Desktop (JVM) Application
+## 添加学校适配
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :dormnet-desktop:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :dormnet-desktop:run
-  ```
+详情见 [DEVELOPMENT.md](DEVELOPMENT.md)
 
-### Build and Run iOS Application
+## 注意事项
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
-
----
-
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+本项目仅用于学习、研究和个人网络接入自动化。使用前请确认符合所在学校或网络服务提供方的使用规范。

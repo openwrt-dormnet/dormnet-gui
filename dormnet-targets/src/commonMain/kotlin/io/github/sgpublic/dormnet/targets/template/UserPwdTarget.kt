@@ -44,7 +44,7 @@ open class UserPwdModel: DormnetViewModel<UserPwdTargetParamsData>(), UserPwdTar
 
 abstract class UserPwdTarget: DormnetTarget<UserPwdTargetParamsData>() {
     @Composable
-    override fun invoke() {
+    override fun invoke(loading: Boolean, onLoadingChanged: (Boolean) -> Unit) {
         val viewModel = viewModel<UserPwdModel>()
         Ui(
             username = viewModel.username,
@@ -57,6 +57,7 @@ abstract class UserPwdTarget: DormnetTarget<UserPwdTargetParamsData>() {
             onPasswordChanged = {
                 viewModel.password = it
             },
+            enabled = !loading
         )
     }
 
@@ -73,6 +74,7 @@ abstract class UserPwdTarget: DormnetTarget<UserPwdTargetParamsData>() {
             password: String,
             passwordMessage: String?,
             onPasswordChanged: (String) -> Unit,
+            enabled: Boolean,
         ) {
             TextField(
                 label = stringResource(Res.string.login_username),
@@ -80,6 +82,7 @@ abstract class UserPwdTarget: DormnetTarget<UserPwdTargetParamsData>() {
                 onValueChange = onUsernameChanged,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                enabled = enabled,
             )
             usernameMessage?.let {
                 Text(
@@ -95,6 +98,7 @@ abstract class UserPwdTarget: DormnetTarget<UserPwdTargetParamsData>() {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
+                enabled = enabled,
             )
             passwordMessage?.let {
                 Text(
