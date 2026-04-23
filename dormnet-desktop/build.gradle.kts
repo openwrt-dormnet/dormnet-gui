@@ -17,7 +17,11 @@ compose.desktop {
         mainClass = "io.github.sgpublic.dormnet.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(
+                TargetFormat.Dmg, TargetFormat.Pkg,
+                TargetFormat.Msi, TargetFormat.Exe,
+                TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage,
+            )
             packageName = "DormNet"
             packageVersion = libs.versions.app.versionName.get()
 
