@@ -63,7 +63,7 @@ compose.desktop {
             if (formats.isNotEmpty()) {
                 for (format in formats) {
                     copyDesktopReleaseArtifacts.configure {
-                        dependsOn("package${format.name}")
+                        dependsOn("packageRelease${format.name}")
                     }
                 }
                 rootProject.tasks.named("packageDistributions") {
