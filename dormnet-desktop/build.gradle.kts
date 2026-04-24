@@ -35,7 +35,7 @@ val copyDesktopReleaseArtifacts by tasks.registering(CiArtifactCopyTask::class) 
     group = "distribution"
     description = "Copies Desktop release installers into the CI artifact directory."
 
-    from(layout.buildDirectory.dir("compose/binaries/main"))
+    from(layout.buildDirectory.dir("compose/binaries/main-release"))
     include("**/*.AppImage")
     include("**/*.deb")
     include("**/*.dmg")
