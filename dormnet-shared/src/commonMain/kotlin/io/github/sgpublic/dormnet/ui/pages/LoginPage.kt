@@ -50,6 +50,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SnackbarHost
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
@@ -107,6 +108,7 @@ fun LoginPage() {
                             }
                         )
                         .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                         .verticalScroll(scrollState)
                         .padding(top = 24.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -183,11 +185,16 @@ fun LoginPage() {
                                     loginPageViewModel.loading = true
                                     val params = viewModel.createLoginParams()
                                     scope.launch(Dispatchers.IO) {
-                                        school.impl.login(params).onFailure {
-                                            snackbarHostState.showSnackbar(it.message!!)
-                                            it.printStackTrace()
-                                        }.onSuccess {
-                                            snackbarHostState.showSnackbar(it)
+                                        val result = school.impl.login(params).fold(
+                                            onSuccess = {
+                                                it
+                                            },
+                                            onFailure = {
+                                                it.message!!
+                                            }
+                                        )
+                                        launch {
+                                            snackbarHostState.showSnackbar(result)
                                         }
                                         Config.setSchool(school)
                                         loginPageViewModel.loading = false
@@ -195,10 +202,16 @@ fun LoginPage() {
                                 },
                                 modifier = Modifier.widthIn(320.dp)
                                     .align(Alignment.CenterHorizontally),
+                                enabled = !loginPageViewModel.loading
                             ) {
                                 Text(
                                     text = stringResource(Res.string.login_action)
                                 )
+                                if (loginPageViewModel.loading) {
+                                    CircularProgressIndicator(
+                                        size = 20.dp,
+                                    )
+                                }
                             }
                         }
                     }

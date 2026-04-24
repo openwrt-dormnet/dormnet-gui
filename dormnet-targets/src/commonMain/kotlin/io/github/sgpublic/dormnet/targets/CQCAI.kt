@@ -12,6 +12,7 @@ import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceModel
 import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceTarget
 import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceTargetParamsData
 import io.ktor.client.HttpClient
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -70,20 +71,24 @@ object CQCAI : UserPwdDeviceTarget() {
         )))
     }
     private suspend fun requestLoginParameters(): Result<CqcaiNetworkInfo> {
-        val response = HttpClient.get("http://192.168.198.1")
+        try {
+            val response = HttpClient.get("http://192.168.198.1")
 
-        val redirectUrl = response.headers[HttpHeaders.Location] ?: return failedResult("Location")
-        val params = Url(redirectUrl).parameters
-        val wlanuserip = params["wlanuserip"] ?: return failedResult("wlanuserip")
-        val wlanacname = params["wlanacname"] ?: return failedResult("wlanacname")
-        val wlanacip = params["wlanacip"] ?: return failedResult("wlanacip")
-        val mac = params["mac"] ?: return failedResult("mac")
-        return Result.success(CqcaiNetworkInfo(
-            wlanuserip = wlanuserip,
-            wlanacname = wlanacname,
-            wlanacip = wlanacip,
-            mac = mac,
-        ))
+            val redirectUrl = response.headers[HttpHeaders.Location] ?: return failedResult("Location")
+            val params = Url(redirectUrl).parameters
+            val wlanuserip = params["wlanuserip"] ?: return failedResult("wlanuserip")
+            val wlanacname = params["wlanacname"] ?: return failedResult("wlanacname")
+            val wlanacip = params["wlanacip"] ?: return failedResult("wlanacip")
+            val mac = params["mac"] ?: return failedResult("mac")
+            return Result.success(CqcaiNetworkInfo(
+                wlanuserip = wlanuserip,
+                wlanacname = wlanacname,
+                wlanacip = wlanacip,
+                mac = mac,
+            ))
+        } catch (_: ConnectTimeoutException) {
+            return failedResult(getString(Res.string.school_cqcai_failed_redirect_info_timeout))
+        }
     }
 
     private suspend fun requestLogin(
