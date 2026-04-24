@@ -1,0 +1,60 @@
+name: Package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-24.04
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+          - name: windows-x64
+            os: windows-2022
+          - name: macos-arm64
+            os: macos-15
+
+    env:
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_CONTENT: ${{ secrets.KEY_CONTENT }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y fakeroot rpm
+
+      - name: Make Gradle executable
+        if: runner.os != 'Windows'
+        run: chmod +x ./gradlew
+
+      - name: Package distributions
+        run: ./gradlew packageCiDistributions
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dormnet-${{ runner.os }}
+          path: build/ci-artifacts/**
+          if-no-files-found: error

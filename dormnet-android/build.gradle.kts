@@ -1,4 +1,9 @@
+import com.android.build.api.variant.FilterConfiguration
 import kotlin.io.encoding.Base64
+import io.github.sgpublic.dormnet.buildlogic.ciArtifactsDir
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.api.tasks.Copy
+import java.io.Serializable
 
 plugins {
     alias(libs.plugins.android.application)
@@ -29,28 +34,47 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    val releaseKeyPassword = providers.environmentVariable("KEY_PASSWORD").orNull
+    val releaseKeyAlias = providers.environmentVariable("KEY_ALIAS").orNull
+    val releaseKeyContent = providers.environmentVariable("KEY_CONTENT").orNull
+    val hasSigningKey = releaseKeyPassword != null && releaseKeyAlias != null && releaseKeyContent != null
     val dormnet by signingConfigs.register("dormnet") {
-        storePassword = providers.environmentVariable("KEY_PASSWORD").orNull
-        keyPassword = providers.environmentVariable("KEY_PASSWORD").orNull
-        keyAlias = providers.environmentVariable("KEY_ALIAS").orNull
-        storeFile = provider {
-            val file = layout.buildDirectory.file("keys.jks").get().asFile
-            providers.environmentVariable("KEY_CONTENT").orNull?.let {
-                file.createNewFile()
-                file.writeBytes(Base64.decode(it))
+        storePassword = releaseKeyPassword
+        keyPassword = releaseKeyPassword
+        keyAlias = releaseKeyAlias
+        storeFile = releaseKeyContent?.let {
+            layout.buildDirectory.file("keys.jks").get().asFile.apply {
+                parentFile.mkdirs()
+                writeBytes(Base64.decode(it))
             }
-            file
-        }.orNull
+        }
     }
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = dormnet
+            if (hasSigningKey) {
+                signingConfig = dormnet
+            }
         }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_25
         targetCompatibility = JavaVersion.VERSION_25
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val abi = output.filters
+                .firstOrNull { it.filterType == FilterConfiguration.FilterType.ABI }
+                ?.identifier
+                ?: "universal"
+            output.outputFileName.set(
+                "dormnet-v${libs.versions.app.versionName.get()}-android-$abi.apk"
+            )
+        }
     }
 }
 
@@ -61,4 +85,23 @@ dependencies {
     implementation(libs.compose.components.resources)
     implementation(projects.dormnetCore)
     implementation(projects.dormnetShared)
+}
+
+val copyAndroidReleaseArtifacts by tasks.registering(Copy::class) {
+    group = "distribution"
+    description = "Copies Android release APK and AAB artifacts into the CI artifact directory."
+    dependsOn("assembleRelease")
+
+    from(layout.buildDirectory.dir("outputs"))
+    include("apk/release/**/*.apk")
+    eachFile {
+        relativePath = RelativePath(true, name)
+    }
+    into(ciArtifactsDir())
+}
+
+if (OperatingSystem.current().isMacOsX) {
+    rootProject.tasks.named("packageDistributions") {
+        dependsOn(copyAndroidReleaseArtifacts)
+    }
 }

@@ -1,4 +1,11 @@
+import io.github.sgpublic.dormnet.buildlogic.ciArtifactsDir
+import com.android.build.gradle.internal.tasks.factory.dependsOn
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.api.Action
+import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.tasks.Copy
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import java.io.Serializable
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -12,16 +19,45 @@ dependencies {
     implementation(libs.kotlinx.coroutines.swing)
 }
 
+val copyDesktopReleaseArtifacts by tasks.registering(Copy::class) {
+    group = "distribution"
+    description = "Copies Desktop release installers into the CI artifact directory."
+
+    from(layout.buildDirectory.dir("compose/binaries/main"))
+    include("**/*.AppImage")
+    include("**/*.deb")
+    include("**/*.dmg")
+    include("**/*.exe")
+    include("**/*.msi")
+    include("**/*.pkg")
+    include("**/*.rpm")
+    val versionName = libs.versions.app.versionName.get()
+    eachFile(DesktopArtifactRenameAction(versionName))
+    includeEmptyDirs = false
+    into(ciArtifactsDir())
+}
+
 compose.desktop {
     application {
         mainClass = "io.github.sgpublic.dormnet.MainKt"
 
         nativeDistributions {
-            targetFormats(
-                TargetFormat.Dmg, TargetFormat.Pkg,
-                TargetFormat.Msi, TargetFormat.Exe,
-                TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage,
-            )
+            val os = OperatingSystem.current()
+            val formats = when {
+                os.isMacOsX -> arrayOf(TargetFormat.Dmg, TargetFormat.Pkg)
+                os.isWindows -> arrayOf(TargetFormat.Msi, TargetFormat.Exe)
+                os.isLinux -> arrayOf(TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
+                else -> emptyArray()
+            }
+            if (formats.isNotEmpty()) {
+                for (format in formats) {
+                    copyDesktopReleaseArtifacts.dependsOn("package${format.name}")
+                }
+                rootProject.tasks.named("packageDistributions") {
+                    dependsOn(copyDesktopReleaseArtifacts)
+                }
+            }
+            targetFormats(*formats)
             packageName = "DormNet"
             packageVersion = libs.versions.app.versionName.get()
 
@@ -39,5 +75,39 @@ compose.desktop {
                 appCategory = "Utility"
             }
         }
+    }
+}
+
+private class DesktopArtifactRenameAction(
+    private val versionName: String
+): Action<FileCopyDetails>, Serializable {
+    override fun execute(details: FileCopyDetails) {
+        val extension = details.name.substringAfterLast('.', missingDelimiterValue = "")
+        val newName = if (extension.isNotEmpty()) {
+            "dormnet-v${versionName}-$osName-$archName.$extension"
+        } else {
+            "dormnet-v${versionName}-$osName-$archName"
+        }
+        details.name = newName
+        details.relativePath = RelativePath(true, newName)
+    }
+
+    companion object {
+        private val currentOs = OperatingSystem.current()
+        private val osName = when {
+            currentOs.isMacOsX -> "macos"
+            currentOs.isWindows -> "windows"
+            currentOs.isLinux -> "linux"
+            else -> "unknown"
+        }
+        private val archName = System.getProperty("os.arch")
+            .lowercase()
+            .let {
+                when (it) {
+                    "aarch64", "arm64" -> "arm64"
+                    "amd64", "x86_64" -> "x64"
+                    else -> it
+                }
+            }
     }
 }
