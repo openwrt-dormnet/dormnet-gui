@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -74,6 +76,7 @@ fun LoginPage() {
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollState = rememberScrollState()
     val loginPageViewModel = viewModel { LoginPageViewModel() }
     val uriHandler = LocalUriHandler.current
     val githubUrl = "https://github.com/openwrt-dormnet/dormnet-gui"
@@ -91,8 +94,7 @@ fun LoginPage() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp),
+                    .padding(innerPadding),
                 contentAlignment = Alignment.TopCenter,
             ) {
                 Column(
@@ -105,6 +107,7 @@ fun LoginPage() {
                             }
                         )
                         .fillMaxWidth()
+                        .verticalScroll(scrollState)
                         .padding(top = 24.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {

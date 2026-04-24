@@ -10,15 +10,24 @@ permissions:
 
 jobs:
   package:
-    name: Package (${{ matrix.os }})
+    name: Package (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-          - macos-latest
+        include:
+          - name: linux-x64
+            os: ubuntu-24.04
+            enable_android_artifacts: true
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+            enable_android_artifacts: false
+          - name: windows-x64
+            os: windows-2022
+            enable_android_artifacts: false
+          - name: macos-arm64
+            os: macos-15
+            enable_android_artifacts: false
 
     env:
       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -47,12 +56,12 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Package distributions
-        run: ./gradlew packageCiDistributions
+        run: ./gradlew packageCiDistributions -PenableAndroidArtifacts=${{ matrix.enable_android_artifacts }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dormnet-${{ runner.os }}
+          name: dormnet-${{ matrix.name }}
           path: build/ci-artifacts/**
           if-no-files-found: error
 

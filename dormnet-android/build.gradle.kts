@@ -1,9 +1,7 @@
 import com.android.build.api.variant.FilterConfiguration
+import io.github.sgpublic.dormnet.buildlogic.CiArtifactCopyTask
 import kotlin.io.encoding.Base64
-import io.github.sgpublic.dormnet.buildlogic.ciArtifactsDir
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.api.tasks.Copy
-import java.io.Serializable
 
 plugins {
     alias(libs.plugins.android.application)
@@ -87,20 +85,21 @@ dependencies {
     implementation(projects.dormnetShared)
 }
 
-val copyAndroidReleaseArtifacts by tasks.registering(Copy::class) {
+val copyAndroidReleaseArtifacts by tasks.registering(CiArtifactCopyTask::class) {
     group = "distribution"
     description = "Copies Android release APK and AAB artifacts into the CI artifact directory."
     dependsOn("assembleRelease")
 
     from(layout.buildDirectory.dir("outputs"))
     include("apk/release/**/*.apk")
-    eachFile {
-        relativePath = RelativePath(true, name)
-    }
-    into(ciArtifactsDir())
+    flattenArtifacts()
 }
 
-if (OperatingSystem.current().isMacOsX) {
+val enableAndroidArtifacts = providers
+    .gradleProperty("enableAndroidArtifacts")
+    .map(String::toBoolean)
+    .orElse(true)
+if (enableAndroidArtifacts.get()) {
     rootProject.tasks.named("packageDistributions") {
         dependsOn(copyAndroidReleaseArtifacts)
     }
