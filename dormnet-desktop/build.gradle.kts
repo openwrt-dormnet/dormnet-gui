@@ -83,6 +83,10 @@ compose.desktop {
                 iconFile = file("./icons/ic_launcher-windows.ico")
                 upgradeUuid = "bf69482f-346f-4711-8995-d566d56aa655"
                 perUserInstall = true
+                shortcut = true
+                menuGroup = "DormNet"
+                menu = true
+                console = true
             }
             linux {
                 iconFile = file("./icons/ic_launcher-linux.png")
