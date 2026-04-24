@@ -74,6 +74,7 @@ compose.desktop {
             packageName = "DormNet"
             packageVersion = libs.versions.app.versionName.get()
 
+            modules("jdk.unsupported")
             macOS {
                 iconFile = file("./icons/ic_launcher-macos.icns")
                 appCategory = "public.app-category.utilities"
