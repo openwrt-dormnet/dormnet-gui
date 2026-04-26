@@ -13,6 +13,7 @@ import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceTarget
 import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceTargetParamsData
 import io.ktor.client.HttpClient
 import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -24,6 +25,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import kotlin.random.Random
 
 @DormnetTargetEntry(
     maintainer = ["sgpublic"]
@@ -86,8 +88,12 @@ object CQCAI : UserPwdDeviceTarget() {
                 wlanacip = wlanacip,
                 mac = mac,
             ))
-        } catch (_: ConnectTimeoutException) {
-            return failedResult(getString(Res.string.school_cqcai_failed_redirect_info_timeout))
+        } catch (e: Exception) {
+            when (e) {
+                is HttpRequestTimeoutException, is ConnectTimeoutException ->
+                    return failedResult(getString(Res.string.school_cqcai_failed_redirect_info_timeout))
+                else -> throw e
+            }
         }
     }
 

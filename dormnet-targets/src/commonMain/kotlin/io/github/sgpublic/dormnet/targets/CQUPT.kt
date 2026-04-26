@@ -14,6 +14,7 @@ import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceTarget
 import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceModel
 import io.github.sgpublic.dormnet.targets.template.UserPwdDeviceTargetParamsData
 import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -132,8 +133,12 @@ object CQUPT : UserPwdDeviceTarget() {
                 wlanacip = wlanacip,
                 mac = mac,
             ))
-        } catch (_: ConnectTimeoutException) {
-            return failedResult(getString(Res.string.school_cqupt_failed_redirect_info_timeout))
+        } catch (e: Exception) {
+            when (e) {
+                is HttpRequestTimeoutException, is ConnectTimeoutException ->
+                    return failedResult(getString(Res.string.school_cqcai_failed_redirect_info_timeout))
+                else -> throw e
+            }
         }
     }
 
