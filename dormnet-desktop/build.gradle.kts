@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.dormnetShared)
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutines.swing)
+    implementation(libs.compose.components.resources)
 }
 
 private val currentDesktopOs = OperatingSystem.current()
@@ -86,11 +87,14 @@ compose.desktop {
                 shortcut = true
                 menuGroup = "DormNet"
                 menu = true
-                console = true
             }
             linux {
                 iconFile = file("./icons/ic_launcher-linux.png")
                 appCategory = "Utility"
+            }
+
+            buildTypes.release.proguard {
+                isEnabled = false
             }
         }
     }
