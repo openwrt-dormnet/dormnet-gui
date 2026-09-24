@@ -2,7 +2,7 @@
 # Application
 app-packageName = "io.github.sgpublic.dormnet"
 app-versionCode = "4"
-app-versionName = "1.0.3"
+app-versionName = "1.1.0"
 
 # Android
 android-compileSdk = "37"
