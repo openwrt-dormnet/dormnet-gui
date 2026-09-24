@@ -119,7 +119,7 @@ object CQUPT : UserPwdDeviceTarget() {
     data class PortalOnlineList(
         val result: Int,
         val msg: String,
-        val list: List<ListItem>,
+        val list: List<ListItem> = emptyList(),
     ) {
         @Serializable
         data class ListItem(

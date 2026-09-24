@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 
 val GlobalJson = Json {
     ignoreUnknownKeys = true
+    encodeDefaults = true
 }
 
 val HttpClient = HttpClient {
