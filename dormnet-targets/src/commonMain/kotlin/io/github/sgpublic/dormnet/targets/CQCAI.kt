@@ -102,7 +102,7 @@ object CQCAI : UserPwdDeviceTarget() {
         netParams: CqcaiNetworkInfo,
     ): CqcaiEportalResponse {
 
-        val response = HttpClient.get("https://auth.cqcai.edu.cn:802/eportal/portal/login") {
+        val response = HttpClient.get("http://172.22.184.89:802/eportal/portal/login") {
             parameter("c", "Portal")
             parameter("a", "login")
             parameter("callback", userInfo.device.callback)
@@ -121,7 +121,7 @@ object CQCAI : UserPwdDeviceTarget() {
             parameter("jsVersion", "4.2.1")
             parameter("terminal_type", userInfo.device.terminalType)
             header(HttpHeaders.UserAgent, userInfo.device.userAgent)
-            header(HttpHeaders.Referrer, "https://auth.cqcai.edu.cn/")
+            header(HttpHeaders.Referrer, "http://172.22.184.89/")
             header("DNT", "1")
         }
 
