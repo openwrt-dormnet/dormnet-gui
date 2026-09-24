@@ -1,7 +1,6 @@
 import com.android.build.api.variant.FilterConfiguration
 import io.github.sgpublic.dormnet.buildlogic.CiArtifactCopyTask
 import kotlin.io.encoding.Base64
-import org.gradle.internal.os.OperatingSystem
 
 plugins {
     alias(libs.plugins.android.application)
