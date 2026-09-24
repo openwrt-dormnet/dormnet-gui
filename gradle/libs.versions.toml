@@ -59,9 +59,8 @@ compose-ui-tooling-preview = { group = "org.jetbrains.compose.ui", name = "ui-to
 
 miuix-ui = { group = "top.yukonga.miuix.kmp", name = "miuix-ui", version.ref = "miuix" }
 miuix-icons = { group = "top.yukonga.miuix.kmp", name = "miuix-icons", version.ref = "miuix" }
-miuix-shapes = { group = "top.yukonga.miuix.kmp", name = "miuix-shapes", version.ref = "miuix" }
 miuix-preference = { group = "top.yukonga.miuix.kmp", name = "miuix-preference", version.ref = "miuix" }
-miuix-navigation3-ui = { group = "top.yukonga.miuix.kmp", name = "miuix-navigation3-ui", version.ref = "miuix" }
+miuix-nav = { group = "top.yukonga.miuix.kmp", name = "miuix-nav", version.ref = "miuix" }
 
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
@@ -108,7 +107,6 @@ androidx-datastore = [
 miuix = [
     "miuix-ui",
     "miuix-icons",
-    "miuix-shapes",
     "miuix-preference",
-    "miuix-navigation3-ui",
+    "miuix-nav",
 ]

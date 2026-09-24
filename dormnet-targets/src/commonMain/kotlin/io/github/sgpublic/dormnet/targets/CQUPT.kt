@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.sgpublic.dormnet.core.Config
+import io.github.sgpublic.dormnet.core.GlobalJson
 import io.github.sgpublic.dormnet.core.parse
 import io.github.sgpublic.dormnet.targets.core.DormnetTargetEntry
 import io.github.sgpublic.dormnet.targets.template.DormnetDevice
@@ -21,6 +22,8 @@ import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -112,10 +115,49 @@ object CQUPT : UserPwdDeviceTarget() {
         }
     }
 
-    private suspend fun failedResult(key: String): Result<CquptNetworkInfo> {
-        return Result.failure(IllegalStateException(getString(
-            Res.string.school_cqupt_failed_redirect_info, key
-        )))
+    @Serializable
+    data class PortalOnlineList(
+        val result: Int,
+        val msg: String,
+        val list: List<ListItem>,
+    ) {
+        @Serializable
+        data class ListItem(
+            @SerialName("user_account")
+            val userAccount: String,
+        )
+    }
+
+    override suspend fun currentOnlineId(): Result<List<String>> {
+        try {
+            val response = CQCAI.HttpClient.get("http://192.168.200.2:801/eportal/") {
+                parameter("c", "Portal")
+                parameter("a", "online_list")
+                parameter("callback", "dr1002")
+            }
+            val body = response.bodyAsText().let {
+                it.substring(7, it.length - 2)
+            }.let {
+                GlobalJson.decodeFromString<PortalOnlineList>(it)
+            }
+            if (body.result == 0) {
+                return Result.success(emptyList())
+            }
+            if (body.result == 1) {
+                return Result.success(body.list.map { it.userAccount })
+            }
+            return failedResult("Unknown", Res.string.school_cqupt_failed_check_online_list)
+        } catch (e: Exception) {
+            when (e) {
+                is HttpRequestTimeoutException, is ConnectTimeoutException ->
+                    return failedResult(getString(Res.string.school_cqupt_failed_check_dormnet))
+                else -> throw e
+            }
+        }
+    }
+
+    private suspend fun <T> failedResult(key: String, head: StringResource = Res.string.school_cqupt_failed_redirect_info): Result<T> {
+        return Result.failure(IllegalStateException(getString(head, key)))
     }
     private suspend fun requestLoginParameters(): Result<CquptNetworkInfo> {
         try {
@@ -136,7 +178,7 @@ object CQUPT : UserPwdDeviceTarget() {
         } catch (e: Exception) {
             when (e) {
                 is HttpRequestTimeoutException, is ConnectTimeoutException ->
-                    return failedResult(getString(Res.string.school_cqcai_failed_redirect_info_timeout))
+                    return failedResult(getString(Res.string.school_cqupt_failed_redirect_info_timeout))
                 else -> throw e
             }
         }

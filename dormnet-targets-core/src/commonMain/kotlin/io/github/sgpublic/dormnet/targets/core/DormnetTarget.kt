@@ -34,5 +34,7 @@ abstract class DormnetTarget<T: LoginParams> {
         return doLogin(params as T)
     }
 
+    abstract suspend fun currentOnlineId(): Result<List<String>>
+
     protected abstract suspend fun doLogin(params: T): Result<String>
 }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.sgpublic.dormnet.core.Config
+import io.github.sgpublic.dormnet.core.GlobalJson
 import io.github.sgpublic.dormnet.core.encodeBase64
 import io.github.sgpublic.dormnet.core.parse
 import io.github.sgpublic.dormnet.targets.core.DormnetTargetEntry
@@ -15,11 +16,14 @@ import io.ktor.client.HttpClient
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.get
+import io.ktor.client.request.head
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -56,6 +60,11 @@ object CQCAI : UserPwdDeviceTarget() {
             it[CqcaiDeviceKey] = params.device.name
         }
         return runCatching {
+            val onlineList = currentOnlineId().getOrThrow()
+            if (onlineList.contains(params.username)) {
+                return@runCatching getString(Res.string.school_cqcai_failed_authed)
+            }
+
             val parameters = requestLoginParameters().getOrThrow()
             val response = requestLogin(
                 userInfo = params,
@@ -63,18 +72,57 @@ object CQCAI : UserPwdDeviceTarget() {
             )
             val message = response.message ?: getString(Res.string.login_failed)
             check(response.result == "1") { message }
-            message
+            return@runCatching message
         }
     }
 
-    private suspend fun failedResult(key: String): Result<CqcaiNetworkInfo> {
-        return Result.failure(IllegalStateException(getString(
-            Res.string.school_cqcai_failed_redirect_info, key
-        )))
+    @Serializable
+    data class PortalOnlineList(
+        val result: Int,
+        val msg: String,
+        val list: List<ListItem>,
+    ) {
+        @Serializable
+        data class ListItem(
+            @SerialName("user_account")
+            val userAccount: String,
+        )
+    }
+
+    override suspend fun currentOnlineId(): Result<List<String>> {
+        try {
+            val response = HttpClient.get("http://172.22.184.89:801/eportal/") {
+                parameter("c", "Portal")
+                parameter("a", "online_list")
+                parameter("callback", "dr1002")
+            }
+            val body = response.bodyAsText().let {
+                it.substring(7, it.length - 2)
+            }.let {
+                GlobalJson.decodeFromString<PortalOnlineList>(it)
+            }
+            if (body.result == 0) {
+                return Result.success(emptyList())
+            }
+            if (body.result == 1) {
+                return Result.success(body.list.map { it.userAccount })
+            }
+            return failedResult("Unknown", Res.string.school_cqcai_failed_check_online_list)
+        } catch (e: Exception) {
+            when (e) {
+                is HttpRequestTimeoutException, is ConnectTimeoutException ->
+                    return failedResult(getString(Res.string.school_cqcai_failed_check_dormnet))
+                else -> throw e
+            }
+        }
+    }
+
+    private suspend fun <T> failedResult(key: String, head: StringResource = Res.string.school_cqcai_failed_redirect_info): Result<T> {
+        return Result.failure(IllegalStateException(getString(head, key)))
     }
     private suspend fun requestLoginParameters(): Result<CqcaiNetworkInfo> {
         try {
-            val response = HttpClient.get("http://192.168.198.1")
+            val response = HttpClient.head("http://192.168.198.1")
 
             val redirectUrl = response.headers[HttpHeaders.Location] ?: return failedResult("Location")
             val params = Url(redirectUrl).parameters
