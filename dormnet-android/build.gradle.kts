@@ -28,7 +28,7 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/{AL2.0,LGPL2.1,INDEX.LIST}"
         }
     }
 
@@ -36,7 +36,7 @@ android {
     val releaseKeyAlias = providers.environmentVariable("KEY_ALIAS").orNull
     val releaseKeyContent = providers.environmentVariable("KEY_CONTENT").orNull
     val hasSigningKey = releaseKeyPassword != null && releaseKeyAlias != null && releaseKeyContent != null
-    val dormnet by signingConfigs.register("dormnet") {
+    val dormnet = signingConfigs.register("dormnet") {
         storePassword = releaseKeyPassword
         keyPassword = releaseKeyPassword
         keyAlias = releaseKeyAlias
@@ -51,7 +51,7 @@ android {
         release {
             isMinifyEnabled = false
             if (hasSigningKey) {
-                signingConfig = dormnet
+                signingConfig = dormnet.get()
             }
         }
     }

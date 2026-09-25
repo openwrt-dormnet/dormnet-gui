@@ -73,6 +73,8 @@ object CQCAI : UserPwdDeviceTarget() {
             val message = response.message ?: getString(Res.string.login_failed)
             check(response.result == "1") { message }
             return@runCatching message
+        }.onFailure {
+            logger.error(it) { "error during doLogin" }
         }
     }
 
@@ -109,6 +111,7 @@ object CQCAI : UserPwdDeviceTarget() {
             }
             return failedResult("Unknown", Res.string.school_cqcai_failed_check_online_list)
         } catch (e: Exception) {
+            logger.error(e) { "error during currentOnlineId" }
             when (e) {
                 is HttpRequestTimeoutException, is ConnectTimeoutException ->
                     return failedResult(getString(Res.string.school_cqcai_failed_check_dormnet))
@@ -137,6 +140,7 @@ object CQCAI : UserPwdDeviceTarget() {
                 mac = mac,
             ))
         } catch (e: Exception) {
+            logger.error(e) { "error during requestLoginParameters" }
             when (e) {
                 is HttpRequestTimeoutException, is ConnectTimeoutException ->
                     return failedResult(getString(Res.string.school_cqcai_failed_redirect_info_timeout))
@@ -149,8 +153,7 @@ object CQCAI : UserPwdDeviceTarget() {
         userInfo: UserPwdDeviceTargetParamsData,
         netParams: CqcaiNetworkInfo,
     ): CqcaiEportalResponse {
-
-        val response = HttpClient.get("http://172.22.184.89:802/eportal/portal/login") {
+        val response = HttpClient.get("http://172.22.184.89:801/eportal/portal/login") {
             parameter("c", "Portal")
             parameter("a", "login")
             parameter("callback", userInfo.device.callback)

@@ -3,6 +3,7 @@ package io.github.sgpublic.dormnet.targets.core
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.ViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.compose.resources.StringResource
 
 interface LoginParams
@@ -16,6 +17,8 @@ abstract class DormnetViewModel<T: LoginParams>: ViewModel() {
 }
 
 abstract class DormnetTarget<T: LoginParams> {
+    protected val logger = KotlinLogging.logger {}
+
     abstract val title: StringResource
 
     open val HttpClient = io.github.sgpublic.dormnet.core.HttpClient

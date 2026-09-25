@@ -22,6 +22,9 @@ kotlin = "2.4.20"
 ksp = "2.3.6"
 kotlinx-serialization = "1.11.0"
 ktor = "3.6.0"
+kotlin-logging = "8.0.4"
+slf4j = "2.0.19"
+logback = "1.5.38"
 compose-multiplatform = "1.12.1"
 junit = "4.13.2"
 kotlinx-coroutines = "1.11.0"
@@ -35,6 +38,11 @@ kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.re
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ksp-symbol-processing-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+
+kotlin-logging = { group = "io.github.oshai", name = "kotlin-logging", version.ref = "kotlin-logging" }
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+logback-core = { group = "ch.qos.logback", name = "logback-core", version.ref = "logback" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
 androidx-testExt-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-testExt" }
@@ -109,4 +117,9 @@ miuix = [
     "miuix-icons",
     "miuix-preference",
     "miuix-nav",
+]
+slf4j = [
+    "slf4j-api",
+    "logback-core",
+    "logback-classic",
 ]

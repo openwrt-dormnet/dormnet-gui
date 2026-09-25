@@ -22,6 +22,8 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.components.resources)
             implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.kotlin.logging)
+            implementation(libs.bundles.slf4j)
             implementation(libs.bundles.ktor.client)
             implementation(projects.dormnetCore)
         }
