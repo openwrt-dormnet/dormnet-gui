@@ -1,8 +1,8 @@
 [versions]
 # Application
 app-packageName = "io.github.sgpublic.dormnet"
-app-versionCode = "8"
-app-versionName = "1.1.4"
+app-versionCode = "9"
+app-versionName = "1.1.5"
 
 # Android
 android-compileSdk = "37"

@@ -150,10 +150,17 @@ object CQCAI : UserPwdDeviceTarget() {
 
     private suspend fun loginParametersFromLocation(redirectUrl: String): Result<CqcaiNetworkInfo> {
         val params = Url(redirectUrl).parameters
-        val wlanuserip = params["wlanuserip"] ?: return failedResult("wlanuserip")
-        val wlanacname = params["wlanacname"] ?: return failedResult("wlanacname")
-        val wlanacip = params["wlanacip"] ?: return failedResult("wlanacip")
-        val mac = params["mac"] ?: return failedResult("mac")
+        val wlanuserip = params["userip"]
+            ?: params["wlanuserip"]
+            ?: return failedResult("wlanuserip")
+        val wlanacname = params["wlanacname"]
+            ?: return failedResult("wlanacname")
+        val wlanacip = params["nasip"]
+            ?: params["wlanacip"]
+            ?: return failedResult("wlanacip")
+        val mac = params["wlanusermac"]
+            ?: params["mac"]?.replace("-", "")
+            ?: return failedResult("mac")
         return Result.success(CqcaiNetworkInfo(
             wlanuserip = wlanuserip,
             wlanacname = wlanacname,
