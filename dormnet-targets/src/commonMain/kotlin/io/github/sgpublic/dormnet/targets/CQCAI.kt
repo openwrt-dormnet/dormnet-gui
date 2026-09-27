@@ -123,22 +123,21 @@ object CQCAI : UserPwdDeviceTarget() {
     private suspend fun <T> failedResult(key: String, head: StringResource = Res.string.school_cqcai_failed_redirect_info): Result<T> {
         return Result.failure(IllegalStateException(getString(head, key)))
     }
+    private val locationHref = "location\\.href=\"(.*?)\"".toRegex()
     private suspend fun requestLoginParameters(): Result<CqcaiNetworkInfo> {
         try {
-            val response = HttpClient.head("http://192.168.198.1")
+            val response = HttpClient.get("http://192.168.198.1")
 
-            val redirectUrl = response.headers[HttpHeaders.Location] ?: return failedResult("Location")
-            val params = Url(redirectUrl).parameters
-            val wlanuserip = params["wlanuserip"] ?: return failedResult("wlanuserip")
-            val wlanacname = params["wlanacname"] ?: return failedResult("wlanacname")
-            val wlanacip = params["wlanacip"] ?: return failedResult("wlanacip")
-            val mac = params["mac"] ?: return failedResult("mac")
-            return Result.success(CqcaiNetworkInfo(
-                wlanuserip = wlanuserip,
-                wlanacname = wlanacname,
-                wlanacip = wlanacip,
-                mac = mac,
-            ))
+            val redirectUrl = response.headers[HttpHeaders.Location]
+            if (redirectUrl != null) {
+                return loginParametersFromLocation(redirectUrl)
+            }
+            val href = locationHref.find(response.bodyAsText())
+                ?.groupValues?.getOrNull(1)
+            if (href == null) {
+                return failedResult("Location")
+            }
+            return loginParametersFromLocation(href)
         } catch (e: Exception) {
             logger.error(e) { "error during requestLoginParameters" }
             when (e) {
@@ -147,6 +146,20 @@ object CQCAI : UserPwdDeviceTarget() {
                 else -> throw e
             }
         }
+    }
+
+    private suspend fun loginParametersFromLocation(redirectUrl: String): Result<CqcaiNetworkInfo> {
+        val params = Url(redirectUrl).parameters
+        val wlanuserip = params["wlanuserip"] ?: return failedResult("wlanuserip")
+        val wlanacname = params["wlanacname"] ?: return failedResult("wlanacname")
+        val wlanacip = params["wlanacip"] ?: return failedResult("wlanacip")
+        val mac = params["mac"] ?: return failedResult("mac")
+        return Result.success(CqcaiNetworkInfo(
+            wlanuserip = wlanuserip,
+            wlanacname = wlanacname,
+            wlanacip = wlanacip,
+            mac = mac,
+        ))
     }
 
     private suspend fun requestLogin(
