@@ -1,6 +1,10 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.buildkonfig)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
 }
@@ -50,6 +54,15 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
         }
+    }
+}
+
+buildkonfig {
+    packageName = libs.versions.app.packageName.get()
+
+    defaultConfigs {
+        buildConfigField(STRING, "versionName", libs.versions.app.versionName.get())
+        buildConfigField(INT, "versionCode", libs.versions.app.versionCode.get())
     }
 }
 

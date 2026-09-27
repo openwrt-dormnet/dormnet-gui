@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowSizeClass
+import io.github.sgpublic.dormnet.BuildKonfig
 import io.github.sgpublic.dormnet.core.Config
 import io.github.sgpublic.dormnet.core.getSchool
 import io.github.sgpublic.dormnet.core.setSchool
@@ -215,6 +216,11 @@ fun LoginPage() {
                             }
                         }
                     }
+                    Text(
+                        text = "v${BuildKonfig.versionName}",
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        color = MiuixTheme.colorScheme.secondary,
+                    )
                 }
             }
         }
